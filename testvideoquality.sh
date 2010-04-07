@@ -16,7 +16,8 @@ CODECVIDEO=`ffmpeg -i $SOURCE 2>&1 | grep Stream | grep Video | awk '{ print $4 
 # BUB DECODAGE Theora... http://qpsnr.youlink.org/#known_issues
 # CODECLIST="ffmpeg x264enc ffmpeg2theora" 
 # CODECLIST="ffmpeg x264enc"
-CODECLIST="x264enc"
+# CODECLIST="x264enc"
+CODECLIST="x264"
 ALGOLIST="psnr ssim"
 PROFILELIST="HQ MQ LQ"
 

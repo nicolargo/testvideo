@@ -20,57 +20,76 @@ SOURCE=$1
 BASENAME=$(basename $1 .${1##*.})
 RESOLUTION=`ffmpeg -i $SOURCE 2>&1 | grep Stream | grep Video | awk -F\, '{ print $3 }'`
 
-# Codec: H.264 GSTREAMER
-ENCODER="x264enc"
+##############################################################################
+
+# Codec: H.264 x264
+ENCODER="x264"
 PROFILE="HQ"
-PARAMETERS="pass=4 quantizer=20 subme=6 me=2 ref=3 threads=0"
-time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
- decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
- ffmux_mp4 name=muxer \
- decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
- muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4
+PARAMETERS="--tune animation --crf 20 --psnr --ssim"
+time $ENCODER $PARAMETERS -o $BASENAME-$PROFILE-$ENCODER.mp4 $SOURCE 
 
-# Codec: H.264 GSTREAMER
-ENCODER="x264enc"
+# Codec: H.264 x264
+ENCODER="x264"
 PROFILE="MQ"
-PARAMETERS="pass=4 quantizer=25 subme=5 me=2 ref=3 threads=0"
-time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
- decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
- ffmux_mp4 name=muxer \
- decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
- muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4
+PARAMETERS="--tune animation --crf 25 --psnr --ssim"
+time $ENCODER $PARAMETERS -o $BASENAME-$PROFILE-$ENCODER.mp4 $SOURCE 
 
-# Codec: H.264 GSTREAMER
-ENCODER="x264enc"
+# Codec: H.264 x264
+ENCODER="x264"
 PROFILE="LQ"
-PARAMETERS="pass=4 quantizer=30 subme=4 threads=0"
-time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
- decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
- ffmux_mp4 name=muxer \
- decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
- muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4
+PARAMETERS="--tune animation --crf 30 --psnr --ssim"
+time $ENCODER $PARAMETERS -o $BASENAME-$PROFILE-$ENCODER.mp4 $SOURCE 
 
-# !!!!
-# ON ENCODE SEULEMENT EN X.264
+
+##############################################################################
+# THE END
+##############################################################################
 exit
 
-# Codec: THEORA
-ENCODER="ffmpeg2theora"
+# Codec: H.264 GSTREAMER
+ENCODER="x264enc"
 PROFILE="HQ"
-PARAMETERS="-v 8 --optimize"
-time $ENCODER $PARAMETERS $SOURCE -o $BASENAME-$PROFILE-$ENCODER.ogg
+PARAMETERS="pass=5 quantizer=20 subme=6 me=2 ref=2 bframes=0 b-adapt=true b-pyramid=true weightb=true threads=0"
+echo "time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
+ decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
+ ffmux_mp4 name=muxer \
+ decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
+ muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4"
+time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
+ decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
+ ffmux_mp4 name=muxer \
+ decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
+ muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4
 
-# Codec: THEORA
-ENCODER="ffmpeg2theora"
+# Codec: H.264 GSTREAMER
+ENCODER="x264enc"
 PROFILE="MQ"
-PARAMETERS="-v 6 --optimize"
-time $ENCODER $PARAMETERS $SOURCE -o $BASENAME-$PROFILE-$ENCODER.ogg
+PARAMETERS="pass=5 quantizer=25 subme=5 me=2 ref=1 bframes=0 b-adapt=true b-pyramid=true weightb=true threads=0"
+echo "time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
+ decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
+ ffmux_mp4 name=muxer \
+ decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
+ muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4"
+time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
+ decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
+ ffmux_mp4 name=muxer \
+ decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
+ muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4
 
-# Codec: THEORA
-ENCODER="ffmpeg2theora"
+# Codec: H.264 GSTREAMER
+ENCODER="x264enc"
 PROFILE="LQ"
-PARAMETERS="-v 4 --optimize"
-time $ENCODER $PARAMETERS $SOURCE -o $BASENAME-$PROFILE-$ENCODER.ogg
+PARAMETERS="pass=5 quantizer=30 subme=4 ref=0 bframes=0 b-adapt=true b-pyramid=true weightb=true threads=0"
+echo "time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
+ decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
+ ffmux_mp4 name=muxer \
+ decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
+ muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4"
+time gst-launch filesrc location=$SOURCE ! decodebin name=decoder \
+ decoder. ! queue ! audioconvert ! faac profile=2 ! queue ! \
+ ffmux_mp4 name=muxer \
+ decoder. ! queue ! ffmpegcolorspace ! $ENCODER $PARAMETERS ! queue ! \
+ muxer. muxer. ! queue ! filesink location=$BASENAME-$PROFILE-$ENCODER.mp4
 
 # Codec: H.264 FFMEG
 ENCODER="ffmpeg"
@@ -89,6 +108,24 @@ ENCODER="ffmpeg"
 PROFILE="LQ"
 PARAMETERS="-vcodec libx264 -s $RESOLUTION -vpre hq -vpre main -crf 26 -subq 1 -refs 1"
 time $ENCODER -i $SOURCE $PARAMETERS $BASENAME-$PROFILE-$ENCODER.mp4
+
+# Codec: THEORA
+ENCODER="ffmpeg2theora"
+PROFILE="HQ"
+PARAMETERS="-v 8 --optimize"
+time $ENCODER $PARAMETERS $SOURCE -o $BASENAME-$PROFILE-$ENCODER.ogg
+
+# Codec: THEORA
+ENCODER="ffmpeg2theora"
+PROFILE="MQ"
+PARAMETERS="-v 6 --optimize"
+time $ENCODER $PARAMETERS $SOURCE -o $BASENAME-$PROFILE-$ENCODER.ogg
+
+# Codec: THEORA
+ENCODER="ffmpeg2theora"
+PROFILE="LQ"
+PARAMETERS="-v 4 --optimize"
+time $ENCODER $PARAMETERS $SOURCE -o $BASENAME-$PROFILE-$ENCODER.ogg
 
 # Results
 
